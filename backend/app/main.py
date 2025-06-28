@@ -9,10 +9,10 @@ Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="SodaStream Tracker API", version="1.0.0")
 
-# CORS middleware
+# CORS middleware - Allow access from any origin on port 3003
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # React frontend
+    allow_origin_regex=r"http://.*:300[03]",  # Allow any host on port 3000 or 3003
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

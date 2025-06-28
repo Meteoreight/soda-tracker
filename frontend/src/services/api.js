@@ -1,6 +1,17 @@
 import axios from 'axios';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+// Dynamically determine API URL based on current host
+const getApiBaseUrl = () => {
+  if (process.env.REACT_APP_API_URL) {
+    return process.env.REACT_APP_API_URL;
+  }
+  
+  // Use current host but port 8000 for API
+  const currentHost = window.location.hostname;
+  return `http://${currentHost}:8000`;
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 const api = axios.create({
   baseURL: `${API_BASE_URL}/api`,
