@@ -47,7 +47,7 @@ const HistoryView = () => {
       date: log.date,
       bottle_size: log.bottle_size,
       bottle_count: log.bottle_count,
-      cylinder_id: log.cylinder_id,
+      cylinder_id: parseInt(log.cylinder_id),
     });
   };
 
