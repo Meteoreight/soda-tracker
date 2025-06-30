@@ -14,13 +14,32 @@ const DashboardView = () => {
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [bottleSize, setBottleSize] = useState('1L');
   const [bottleCount, setBottleCount] = useState(1);
+  const [co2Pushes, setCo2Pushes] = useState(null); // null means use default calculation
   const [cylinders, setCylinders] = useState([]);
   const [activeCylinderId, setActiveCylinderId] = useState(null);
+
+  // Calculate default CO2 pushes based on bottle size and count
+  const calculateDefaultCo2Pushes = (size, count) => {
+    const pushesPerBottle = size === '1L' ? 4 : 2;
+    return pushesPerBottle * count;
+  };
 
   useEffect(() => {
     loadDashboardData();
     loadCylinders();
   }, []);
+
+  // Initialize CO2 pushes with default value
+  useEffect(() => {
+    const defaultPushes = calculateDefaultCo2Pushes(bottleSize, bottleCount);
+    setCo2Pushes(defaultPushes);
+  }, []); // Run only once on mount
+
+  // Update default CO2 pushes when bottle size or count changes
+  useEffect(() => {
+    const defaultPushes = calculateDefaultCo2Pushes(bottleSize, bottleCount);
+    setCo2Pushes(defaultPushes);
+  }, [bottleSize, bottleCount]);
 
   const loadDashboardData = async () => {
     try {
@@ -63,6 +82,7 @@ const DashboardView = () => {
         bottle_size: bottleSize,
         bottle_count: bottleCount,
         cylinder_id: activeCylinderId,
+        co2_pushes: co2Pushes,
       };
 
       await logsApi.create(logData);
@@ -72,6 +92,8 @@ const DashboardView = () => {
       // Reset form
       setBottleCount(1);
       setDate(new Date().toISOString().split('T')[0]);
+      const defaultPushes = calculateDefaultCo2Pushes(bottleSize, 1);
+      setCo2Pushes(defaultPushes);
       
       // Reload dashboard data
       loadDashboardData();
@@ -131,6 +153,19 @@ const DashboardView = () => {
                 min={1}
                 max={20}
               />
+            </div>
+            
+            <div className="form-group">
+              <label className="form-label">CO2 Pushes:</label>
+              <Counter
+                value={co2Pushes || 0}
+                onChange={setCo2Pushes}
+                min={0}
+                max={50}
+              />
+              <small className="form-text text-muted">
+                Default: {calculateDefaultCo2Pushes(bottleSize, bottleCount)} pushes
+              </small>
             </div>
             
             <button type="submit" className="btn btn-primary btn-lg">
