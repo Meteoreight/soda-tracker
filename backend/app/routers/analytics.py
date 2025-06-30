@@ -26,7 +26,11 @@ def get_analytics(
     
     # Calculate totals
     total_consumption_ml = sum(log.volume_ml for log in logs)
-    average_daily_consumption_ml = total_consumption_ml / period_days if period_days > 0 else 0
+    
+    # Calculate average based on actual data days, not selected period days
+    unique_dates = set(log.date for log in logs)
+    actual_data_days = len(unique_dates)
+    average_daily_consumption_ml = total_consumption_ml / actual_data_days if actual_data_days > 0 else 0
     
     # Calculate total cost
     total_cost = 0.0
