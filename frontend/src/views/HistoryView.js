@@ -17,11 +17,26 @@ const HistoryView = () => {
     bottle_size: '1L',
     bottle_count: 1,
     cylinder_id: '',
+    co2_pushes: 4, // Default for 1L bottle
   });
+
+  // Calculate default CO2 pushes based on bottle size and count
+  const calculateDefaultCo2Pushes = (size, count) => {
+    const pushesPerBottle = size === '1L' ? 4 : 2;
+    return pushesPerBottle * count;
+  };
 
   useEffect(() => {
     loadData();
   }, []);
+
+  // Update CO2 pushes when bottle size or count changes (only for new logs, not editing)
+  useEffect(() => {
+    if (showAddForm && !editingLog) {
+      const defaultPushes = calculateDefaultCo2Pushes(formData.bottle_size, formData.bottle_count);
+      setFormData(prev => ({ ...prev, co2_pushes: defaultPushes }));
+    }
+  }, [formData.bottle_size, formData.bottle_count, showAddForm, editingLog]);
 
   const loadData = async () => {
     try {
@@ -48,6 +63,7 @@ const HistoryView = () => {
       bottle_size: log.bottle_size,
       bottle_count: log.bottle_count,
       cylinder_id: parseInt(log.cylinder_id),
+      co2_pushes: log.co2_pushes,
     });
   };
 
@@ -96,6 +112,7 @@ const HistoryView = () => {
       bottle_size: '1L',
       bottle_count: 1,
       cylinder_id: '',
+      co2_pushes: 4, // Default for 1L bottle
     });
   };
 
@@ -183,6 +200,19 @@ const HistoryView = () => {
                     </option>
                   ))}
                 </select>
+              </div>
+              
+              <div className="form-group">
+                <label className="form-label">CO2 Pushes:</label>
+                <Counter
+                  value={formData.co2_pushes || 0}
+                  onChange={(pushes) => setFormData({ ...formData, co2_pushes: pushes })}
+                  min={0}
+                  max={50}
+                />
+                <small className="form-text text-muted">
+                  Default: {calculateDefaultCo2Pushes(formData.bottle_size, formData.bottle_count)} pushes
+                </small>
               </div>
               
               <div className="form-group">
