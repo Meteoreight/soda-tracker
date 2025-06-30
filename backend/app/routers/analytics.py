@@ -99,12 +99,24 @@ def get_dashboard_summary(db: Session = Depends(get_db)):
         models.ConsumptionLog.date <= today
     ).all()
     
-    recent_consumption_data = []
+    # Group by date and sum volumes to handle multiple records per day
+    daily_consumption = {}
     for log in recent_logs:
+        date_str = log.date.isoformat()
+        if date_str not in daily_consumption:
+            daily_consumption[date_str] = 0
+        daily_consumption[date_str] += log.volume_ml
+    
+    # Convert to list format for frontend
+    recent_consumption_data = []
+    for date_str, volume_ml in daily_consumption.items():
         recent_consumption_data.append({
-            "date": log.date.isoformat(),
-            "volume_ml": log.volume_ml
+            "date": date_str,
+            "volume_ml": volume_ml
         })
+    
+    # Sort by date
+    recent_consumption_data.sort(key=lambda x: x["date"])
     
     return schemas.DashboardSummary(
         today_consumption_ml=today_consumption_ml,
