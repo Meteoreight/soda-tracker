@@ -28,13 +28,14 @@ class ConsumptionLogBase(BaseModel):
     cylinder_id: int
 
 class ConsumptionLogCreate(ConsumptionLogBase):
-    pass
+    co2_pushes: Optional[int] = None
 
 class ConsumptionLogUpdate(BaseModel):
     date: Optional[date] = None
     bottle_size: Optional[str] = None
     bottle_count: Optional[int] = None
     cylinder_id: Optional[int] = None
+    co2_pushes: Optional[int] = None
 
 class ConsumptionLog(ConsumptionLogBase):
     id: int

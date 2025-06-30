@@ -30,8 +30,11 @@ def get_consumption_logs(skip: int = 0, limit: int = 100, db: Session = Depends(
 
 @router.post("/", response_model=schemas.ConsumptionLog)
 def create_consumption_log(log: schemas.ConsumptionLogCreate, db: Session = Depends(get_db)):
-    # Calculate volume and CO2 pushes
-    volume_ml, co2_pushes = calculate_volume_and_pushes(log.bottle_size, log.bottle_count)
+    # Calculate volume
+    volume_ml, default_co2_pushes = calculate_volume_and_pushes(log.bottle_size, log.bottle_count)
+    
+    # Use manual CO2 pushes if provided, otherwise use calculated default
+    co2_pushes = log.co2_pushes if log.co2_pushes is not None else default_co2_pushes
     
     # Verify cylinder exists
     cylinder = db.query(models.Cylinder).filter(models.Cylinder.id == log.cylinder_id).first()
@@ -67,13 +70,16 @@ def update_consumption_log(log_id: int, log_update: schemas.ConsumptionLogUpdate
     
     update_data = log_update.dict(exclude_unset=True)
     
-    # Recalculate volume and pushes if bottle data changed
+    # Recalculate volume if bottle data changed
     if "bottle_size" in update_data or "bottle_count" in update_data:
         bottle_size = update_data.get("bottle_size", db_log.bottle_size)
         bottle_count = update_data.get("bottle_count", db_log.bottle_count)
-        volume_ml, co2_pushes = calculate_volume_and_pushes(bottle_size, bottle_count)
+        volume_ml, default_co2_pushes = calculate_volume_and_pushes(bottle_size, bottle_count)
         update_data["volume_ml"] = volume_ml
-        update_data["co2_pushes"] = co2_pushes
+        
+        # Only update CO2 pushes if not manually specified in the update
+        if "co2_pushes" not in update_data:
+            update_data["co2_pushes"] = default_co2_pushes
     
     for field, value in update_data.items():
         setattr(db_log, field, value)
