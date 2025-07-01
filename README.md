@@ -102,7 +102,7 @@ docker-compose up --build
 
 ### Cost Calculations
 - Based on CO2 consumption (pushes) rather than water volume
-- Assumes ~500 pushes per cylinder for cost calculation
+- Assumes ~150 pushes per cylinder for cost calculation
 - Compares against retail price (default: ¥45 per 500mL)
 
 ## Development
