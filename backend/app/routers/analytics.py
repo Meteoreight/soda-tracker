@@ -32,25 +32,56 @@ def get_analytics(
     actual_data_days = len(unique_dates)
     average_daily_consumption_ml = total_consumption_ml / actual_data_days if actual_data_days > 0 else 0
     
-    # Calculate total cost
-    total_cost = 0.0
+    # Get initial cost from settings
+    initial_cost_setting = db.query(models.Settings).filter(models.Settings.key == "initial_cost").first()
+    initial_cost = float(initial_cost_setting.value) if initial_cost_setting else 0.0
+    
+    # Calculate total cost (initial cost + CO2 cost)
+    co2_cost = 0.0
     for log in logs:
         cylinder_cost = log.cylinder.cost if log.cylinder else 0
         # Cost per push = cylinder_cost / estimated_total_pushes_per_cylinder (assuming 500 pushes per cylinder)
         cost_per_push = cylinder_cost / 500 if cylinder_cost > 0 else 0
-        total_cost += log.co2_pushes * cost_per_push
+        co2_cost += log.co2_pushes * cost_per_push
+    
+    total_cost = initial_cost + co2_cost
     
     cost_per_liter = (total_cost / (total_consumption_ml / 1000)) if total_consumption_ml > 0 else 0
     
-    # Prepare consumption data for charts
-    consumption_data = []
-    for log in logs:
-        consumption_data.append({
-            "date": log.date.isoformat(),
-            "volume_ml": log.volume_ml,
-            "bottle_size": log.bottle_size,
-            "bottle_count": log.bottle_count
-        })
+    # Prepare consumption data for charts (grouped by date)
+    daily_data = {}
+    cumulative_volume = 0
+    
+    # Sort logs by date to calculate cumulative data correctly
+    sorted_logs = sorted(logs, key=lambda x: x.date)
+    
+    for log in sorted_logs:
+        date_str = log.date.isoformat()
+        
+        # Calculate CO2 cost for this log
+        cylinder_cost = log.cylinder.cost if log.cylinder else 0
+        cost_per_push = cylinder_cost / 500 if cylinder_cost > 0 else 0
+        log_co2_cost = log.co2_pushes * cost_per_push
+        
+        # Update cumulative volume
+        cumulative_volume += log.volume_ml
+        
+        # Group by date
+        if date_str not in daily_data:
+            daily_data[date_str] = {
+                "date": date_str,
+                "volume_ml": 0,
+                "co2_cost": 0,
+                "retail_cost": 0,
+                "cumulative_volume_ml": cumulative_volume
+            }
+        
+        daily_data[date_str]["volume_ml"] += log.volume_ml
+        daily_data[date_str]["co2_cost"] += log_co2_cost
+        daily_data[date_str]["retail_cost"] += (log.volume_ml * 45) / 500  # JPY 45 per 500mL
+        daily_data[date_str]["cumulative_volume_ml"] = cumulative_volume
+    
+    consumption_data = list(daily_data.values())
     
     return schemas.AnalyticsResponse(
         total_consumption_ml=total_consumption_ml,
@@ -78,13 +109,21 @@ def get_dashboard_summary(db: Session = Depends(get_db)):
         models.ConsumptionLog.date <= today
     ).all()
     
-    this_month_cost = 0.0
+    # Get initial cost from settings
+    initial_cost_setting = db.query(models.Settings).filter(models.Settings.key == "initial_cost").first()
+    initial_cost = float(initial_cost_setting.value) if initial_cost_setting else 0.0
+    
+    this_month_co2_cost = 0.0
     this_month_consumption_ml = 0.0
     for log in month_logs:
         this_month_consumption_ml += log.volume_ml
         cylinder_cost = log.cylinder.cost if log.cylinder else 0
         cost_per_push = cylinder_cost / 500 if cylinder_cost > 0 else 0
-        this_month_cost += log.co2_pushes * cost_per_push
+        this_month_co2_cost += log.co2_pushes * cost_per_push
+    
+    # For monthly cost, we include the full initial cost
+    # This represents the total cost investment for the month's consumption
+    this_month_cost = initial_cost + this_month_co2_cost
     
     # Calculate savings vs retail (JPY 45 per 500ml)
     retail_cost_per_ml = 45 / 500  # JPY per mL

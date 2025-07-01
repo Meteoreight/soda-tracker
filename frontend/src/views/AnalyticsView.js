@@ -29,18 +29,16 @@ const AnalyticsView = () => {
   const prepareChartData = () => {
     if (!analytics?.consumption_data) return [];
     
-    // Group by date and sum volumes
-    const groupedData = analytics.consumption_data.reduce((acc, item) => {
-      const date = item.date;
-      if (!acc[date]) {
-        acc[date] = { date, volume_ml: 0, retail_cost: 0 };
-      }
-      acc[date].volume_ml += item.volume_ml;
-      acc[date].retail_cost += (item.volume_ml * 45) / 500; // JPY 45 per 500mL
-      return acc;
-    }, {});
+    // The data is already grouped by date from the backend
+    const chartData = analytics.consumption_data.map(item => ({
+      date: item.date,
+      co2_cost: item.co2_cost || 0,
+      retail_cost: item.retail_cost || 0,
+      volume_ml: item.volume_ml || 0,
+      cumulative_volume_ml: item.cumulative_volume_ml || 0
+    }));
 
-    return Object.values(groupedData).sort((a, b) => new Date(a.date) - new Date(b.date));
+    return chartData.sort((a, b) => new Date(a.date) - new Date(b.date));
   };
 
   const chartData = prepareChartData();
@@ -134,29 +132,25 @@ const AnalyticsView = () => {
                       interval="preserveStartEnd"
                     />
                     <YAxis 
-                      yAxisId="volume"
+                      yAxisId="cost"
                       orientation="left"
                       tick={{ fontSize: 12 }}
-                    />
-                    <YAxis 
-                      yAxisId="cost"
-                      orientation="right"
-                      tick={{ fontSize: 12 }}
+                      label={{ value: 'Cost (¥)', angle: -90, position: 'insideLeft' }}
                     />
                     <Tooltip 
                       formatter={(value, name) => [
-                        name === 'volume_ml' ? `${Math.round(value)} mL` : `¥${value.toFixed(0)}`,
-                        name === 'volume_ml' ? 'Volume' : 'Retail Cost'
+                        `¥${value.toFixed(1)}`,
+                        name === 'co2_cost' ? 'Your CO2 Cost' : 'Retail Cost'
                       ]}
                       labelFormatter={(date) => new Date(date).toLocaleDateString()}
                     />
                     <Line 
-                      yAxisId="volume"
+                      yAxisId="cost"
                       type="monotone" 
-                      dataKey="volume_ml" 
+                      dataKey="co2_cost" 
                       stroke="#007bff" 
                       strokeWidth={2}
-                      name="volume_ml"
+                      name="co2_cost"
                     />
                     <Line 
                       yAxisId="cost"
@@ -189,7 +183,7 @@ const AnalyticsView = () => {
                     height: '2px', 
                     backgroundColor: '#007bff' 
                   }}></div>
-                  <span>Your Consumption (mL)</span>
+                  <span>Your CO2 Cost (¥)</span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   <div style={{ 
@@ -199,7 +193,7 @@ const AnalyticsView = () => {
                     borderStyle: 'dashed',
                     borderWidth: '1px 0'
                   }}></div>
-                  <span>Retail Cost Equivalent (¥45/500mL)</span>
+                  <span>Retail Cost (¥45/500mL)</span>
                 </div>
               </div>
             </div>
@@ -228,6 +222,66 @@ const AnalyticsView = () => {
                 <p style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#28a745' }}>
                   ¥{(((analytics.total_consumption_ml * 45) / 500) - analytics.total_cost).toFixed(0)}
                 </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Cumulative Consumption Chart */}
+          <div className="card">
+            <h2 className="card-title">
+              Cumulative Consumption ({selectedPeriod})
+            </h2>
+            <div style={{ height: '300px' }}>
+              {chartData.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={chartData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis 
+                      dataKey="date" 
+                      tick={{ fontSize: 12 }}
+                      interval="preserveStartEnd"
+                    />
+                    <YAxis 
+                      tick={{ fontSize: 12 }}
+                      label={{ value: 'Volume (L)', angle: -90, position: 'insideLeft' }}
+                    />
+                    <Tooltip 
+                      formatter={(value, name) => [
+                        `${(value / 1000).toFixed(1)} L`,
+                        'Cumulative Volume'
+                      ]}
+                      labelFormatter={(date) => new Date(date).toLocaleDateString()}
+                    />
+                    <Line 
+                      type="monotone" 
+                      dataKey="cumulative_volume_ml"
+                      stroke="#28a745" 
+                      strokeWidth={3}
+                      name="cumulative_volume_ml"
+                      dot={{ fill: '#28a745', strokeWidth: 2, r: 4 }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              ) : (
+                <div style={{ 
+                  height: '100%', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center',
+                  color: '#6c757d'
+                }}>
+                  No data available for the selected period
+                </div>
+              )}
+            </div>
+            <div style={{ marginTop: '1rem', fontSize: '0.875rem', color: '#6c757d' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <div style={{ 
+                  width: '20px', 
+                  height: '3px', 
+                  backgroundColor: '#28a745' 
+                }}></div>
+                <span>Total Carbonated Water Produced (L)</span>
               </div>
             </div>
           </div>
