@@ -2,6 +2,8 @@
 
 A comprehensive application for tracking SodaStream sparkling water consumption, CO2 usage, and cost analysis.
 
+*[日本語版README](README_JP.md)*
+
 ## Features
 
 - **Daily Consumption Logging**: Record daily sparkling water consumption with automatic volume calculations
@@ -15,9 +17,15 @@ A comprehensive application for tracking SodaStream sparkling water consumption,
 
 The application follows a 3-tier architecture:
 
-- **Frontend**: React application with 5 main views (Dashboard, History, Analytics, Cylinders, Settings)
+- **Frontend**: React 18 application with 5 main views (Dashboard, History, Analytics, Cylinders, Settings)
+  - UI Libraries: Recharts for charts, React DatePicker for date selection
+  - Routing: React Router DOM v6
+  - HTTP Client: Axios
 - **Backend**: FastAPI with comprehensive REST API endpoints
-- **Database**: PostgreSQL for reliable data persistence
+  - Database ORM: SQLAlchemy 2.0
+  - Validation: Pydantic v2
+  - Data Processing: Pandas
+- **Database**: PostgreSQL 15 for reliable data persistence
 
 ## Quick Start
 
@@ -41,7 +49,7 @@ docker-compose up --build
 3. Wait for all services to start (this may take a few minutes on first run)
 
 4. Access the application:
-   - **Frontend**: http://localhost:3000
+   - **Frontend**: http://localhost:3003
    - **Backend API**: http://localhost:8000
    - **API Documentation**: http://localhost:8000/docs
 
@@ -169,7 +177,7 @@ docker-compose exec db psql -U postgres -d soda_tracker
 
 ### Common Issues
 
-1. **Port conflicts**: Ensure ports 3000, 8000, and 5432 are available
+1. **Port conflicts**: Ensure ports 3003, 8000, and 5432 are available
 2. **Database connection**: Wait for PostgreSQL health check to pass
 3. **Frontend not loading**: Check that backend is fully started first
 4. **CSV import errors**: Use the sample CSV format as reference
@@ -185,7 +193,3 @@ To reset all data:
 docker-compose down -v
 docker-compose up --build
 ```
-
-## License
-
-This project is created based on the specifications in Soda-logger_master.md.
