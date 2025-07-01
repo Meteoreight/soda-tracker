@@ -9,6 +9,7 @@ const CylindersView = () => {
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingCylinder, setEditingCylinder] = useState(null);
   const [dateRanges, setDateRanges] = useState({});
+  const [totalPushes, setTotalPushes] = useState({});
   
   const [formData, setFormData] = useState({
     number: '',
@@ -25,8 +26,9 @@ const CylindersView = () => {
       const response = await cylindersApi.getAll();
       setCylinders(response.data);
       
-      // Load date ranges for each cylinder
+      // Load date ranges and total pushes for each cylinder
       const ranges = {};
+      const pushes = {};
       for (const cylinder of response.data) {
         try {
           const dateResponse = await cylindersApi.getDateRange(cylinder.id);
@@ -34,8 +36,16 @@ const CylindersView = () => {
         } catch (err) {
           ranges[cylinder.id] = { start_date: null, end_date: null };
         }
+        
+        try {
+          const pushResponse = await cylindersApi.getTotalPushes(cylinder.id);
+          pushes[cylinder.id] = pushResponse.data.total_pushes;
+        } catch (err) {
+          pushes[cylinder.id] = 0;
+        }
       }
       setDateRanges(ranges);
+      setTotalPushes(pushes);
       
       setError(null);
     } catch (err) {
@@ -223,6 +233,7 @@ const CylindersView = () => {
                 <th>Cost (¥)</th>
                 <th>Status</th>
                 <th>Usage Period</th>
+                <th>Total Pushes</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -258,6 +269,9 @@ const CylindersView = () => {
                   </td>
                   <td style={{ fontSize: '0.875rem', color: '#6c757d' }}>
                     {formatDateRange(dateRanges[cylinder.id] || {})}
+                  </td>
+                  <td style={{ fontSize: '0.875rem', fontWeight: 'bold' }}>
+                    {totalPushes[cylinder.id] || 0}
                   </td>
                   <td>
                     <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>

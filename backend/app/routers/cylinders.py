@@ -88,3 +88,14 @@ def get_cylinder_date_range(cylinder_id: int, db: Session = Depends(get_db)):
         "start_date": date_range.start_date,
         "end_date": date_range.end_date
     }
+
+@router.get("/{cylinder_id}/total-pushes")
+def get_cylinder_total_pushes(cylinder_id: int, db: Session = Depends(get_db)):
+    """Get the total number of CO2 pushes for this cylinder"""
+    total_pushes = db.query(
+        func.sum(models.ConsumptionLog.co2_pushes).label('total_pushes')
+    ).filter(models.ConsumptionLog.cylinder_id == cylinder_id).scalar()
+    
+    return {
+        "total_pushes": total_pushes or 0
+    }

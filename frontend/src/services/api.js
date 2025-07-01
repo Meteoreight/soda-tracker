@@ -38,6 +38,7 @@ export const cylindersApi = {
   delete: (id) => api.delete(`/cylinders/${id}`),
   changeActive: (cylinderId) => api.post(`/cylinders/change-active?new_cylinder_id=${cylinderId}`),
   getDateRange: (id) => api.get(`/cylinders/${id}/date-range`),
+  getTotalPushes: (id) => api.get(`/cylinders/${id}/total-pushes`),
 };
 
 // Analytics API

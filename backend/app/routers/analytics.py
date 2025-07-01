@@ -41,7 +41,7 @@ def get_analytics(
     for log in logs:
         cylinder_cost = log.cylinder.cost if log.cylinder else 0
         # Cost per push = cylinder_cost / estimated_total_pushes_per_cylinder (assuming 500 pushes per cylinder)
-        cost_per_push = cylinder_cost / 500 if cylinder_cost > 0 else 0
+        cost_per_push = cylinder_cost / 150 if cylinder_cost > 0 else 0
         co2_cost += log.co2_pushes * cost_per_push
     
     total_cost = initial_cost + co2_cost
@@ -61,7 +61,7 @@ def get_analytics(
         
         # Calculate CO2 cost for this log
         cylinder_cost = log.cylinder.cost if log.cylinder else 0
-        cost_per_push = cylinder_cost / 500 if cylinder_cost > 0 else 0
+        cost_per_push = cylinder_cost / 150 if cylinder_cost > 0 else 0
         log_co2_cost = log.co2_pushes * cost_per_push
         
         # Update cumulative values
@@ -125,7 +125,7 @@ def get_dashboard_summary(db: Session = Depends(get_db)):
     for log in month_logs:
         this_month_consumption_ml += log.volume_ml
         cylinder_cost = log.cylinder.cost if log.cylinder else 0
-        cost_per_push = cylinder_cost / 500 if cylinder_cost > 0 else 0
+        cost_per_push = cylinder_cost / 150 if cylinder_cost > 0 else 0
         this_month_co2_cost += log.co2_pushes * cost_per_push
     
     # For monthly cost, we include the full initial cost
