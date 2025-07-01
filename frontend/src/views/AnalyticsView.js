@@ -33,6 +33,7 @@ const AnalyticsView = () => {
     const chartData = analytics.consumption_data.map(item => ({
       date: item.date,
       co2_cost: item.co2_cost || 0,
+      total_cost: item.total_cost || 0,
       retail_cost: item.retail_cost || 0,
       volume_ml: item.volume_ml || 0,
       cumulative_volume_ml: item.cumulative_volume_ml || 0
@@ -140,17 +141,17 @@ const AnalyticsView = () => {
                     <Tooltip 
                       formatter={(value, name) => [
                         `¥${value.toFixed(1)}`,
-                        name === 'co2_cost' ? 'Your CO2 Cost' : 'Retail Cost'
+                        name === 'total_cost' ? 'Your Total Cost' : 'Retail Cost'
                       ]}
                       labelFormatter={(date) => new Date(date).toLocaleDateString()}
                     />
                     <Line 
                       yAxisId="cost"
                       type="monotone" 
-                      dataKey="co2_cost" 
+                      dataKey="total_cost" 
                       stroke="#007bff" 
                       strokeWidth={2}
-                      name="co2_cost"
+                      name="total_cost"
                     />
                     <Line 
                       yAxisId="cost"
@@ -183,7 +184,7 @@ const AnalyticsView = () => {
                     height: '2px', 
                     backgroundColor: '#007bff' 
                   }}></div>
-                  <span>Your CO2 Cost (¥)</span>
+                  <span>Your Total Cost (¥)</span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   <div style={{ 

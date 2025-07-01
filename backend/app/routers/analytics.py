@@ -51,6 +51,7 @@ def get_analytics(
     # Prepare consumption data for charts (grouped by date)
     daily_data = {}
     cumulative_volume = 0
+    cumulative_co2_cost = 0
     
     # Sort logs by date to calculate cumulative data correctly
     sorted_logs = sorted(logs, key=lambda x: x.date)
@@ -63,8 +64,12 @@ def get_analytics(
         cost_per_push = cylinder_cost / 500 if cylinder_cost > 0 else 0
         log_co2_cost = log.co2_pushes * cost_per_push
         
-        # Update cumulative volume
+        # Update cumulative values
         cumulative_volume += log.volume_ml
+        cumulative_co2_cost += log_co2_cost
+        
+        # Calculate total cost (initial cost + cumulative CO2 cost)
+        total_cost = initial_cost + cumulative_co2_cost
         
         # Group by date
         if date_str not in daily_data:
@@ -73,13 +78,15 @@ def get_analytics(
                 "volume_ml": 0,
                 "co2_cost": 0,
                 "retail_cost": 0,
-                "cumulative_volume_ml": cumulative_volume
+                "cumulative_volume_ml": cumulative_volume,
+                "total_cost": total_cost
             }
         
         daily_data[date_str]["volume_ml"] += log.volume_ml
         daily_data[date_str]["co2_cost"] += log_co2_cost
         daily_data[date_str]["retail_cost"] += (log.volume_ml * 45) / 500  # JPY 45 per 500mL
         daily_data[date_str]["cumulative_volume_ml"] = cumulative_volume
+        daily_data[date_str]["total_cost"] = total_cost
     
     consumption_data = list(daily_data.values())
     
