@@ -36,6 +36,10 @@ def get_analytics(
     initial_cost_setting = db.query(models.Settings).filter(models.Settings.key == "initial_cost").first()
     initial_cost = float(initial_cost_setting.value) if initial_cost_setting else 0.0
     
+    # Get retail price from settings
+    retail_price_setting = db.query(models.Settings).filter(models.Settings.key == "retail_price_per_500ml").first()
+    retail_price_per_500ml = float(retail_price_setting.value) if retail_price_setting else 45.0
+    
     # Calculate total cost (initial cost + CO2 cost)
     co2_cost = 0.0
     for log in logs:
@@ -66,7 +70,7 @@ def get_analytics(
         log_co2_cost = log.co2_pushes * cost_per_push
         
         # Calculate retail cost for this log
-        log_retail_cost = (log.volume_ml * 45) / 500  # JPY 45 per 500mL
+        log_retail_cost = (log.volume_ml * retail_price_per_500ml) / 500
         
         # Update cumulative values
         cumulative_volume += log.volume_ml
@@ -125,6 +129,10 @@ def get_dashboard_summary(db: Session = Depends(get_db)):
     initial_cost_setting = db.query(models.Settings).filter(models.Settings.key == "initial_cost").first()
     initial_cost = float(initial_cost_setting.value) if initial_cost_setting else 0.0
     
+    # Get retail price from settings
+    retail_price_setting = db.query(models.Settings).filter(models.Settings.key == "retail_price_per_500ml").first()
+    retail_price_per_500ml = float(retail_price_setting.value) if retail_price_setting else 45.0
+    
     this_month_co2_cost = 0.0
     this_month_consumption_ml = 0.0
     for log in month_logs:
@@ -137,8 +145,8 @@ def get_dashboard_summary(db: Session = Depends(get_db)):
     # This represents the total cost investment for the month's consumption
     this_month_cost = initial_cost + this_month_co2_cost
     
-    # Calculate savings vs retail (JPY 45 per 500ml)
-    retail_cost_per_ml = 45 / 500  # JPY per mL
+    # Calculate savings vs retail using settings
+    retail_cost_per_ml = retail_price_per_500ml / 500  # JPY per mL
     retail_cost_this_month = this_month_consumption_ml * retail_cost_per_ml
     savings_vs_retail = retail_cost_this_month - this_month_cost
     

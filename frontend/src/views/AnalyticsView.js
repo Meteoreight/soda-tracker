@@ -1,16 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
-import { analyticsApi } from '../services/api';
+import { analyticsApi, settingsApi } from '../services/api';
 
 const AnalyticsView = () => {
   const [analytics, setAnalytics] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedPeriod, setSelectedPeriod] = useState('30d');
+  const [retailPrice, setRetailPrice] = useState(45.0);
 
   useEffect(() => {
     loadAnalytics();
   }, [selectedPeriod]);
+
+  useEffect(() => {
+    loadRetailPrice();
+  }, []);
 
   const loadAnalytics = async () => {
     try {
@@ -23,6 +28,16 @@ const AnalyticsView = () => {
       console.error('Analytics error:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadRetailPrice = async () => {
+    try {
+      const response = await settingsApi.getRetailPrice();
+      setRetailPrice(response.data.value);
+    } catch (err) {
+      console.error('Failed to load retail price:', err);
+      // Keep default value of 45.0
     }
   };
 
@@ -112,7 +127,7 @@ const AnalyticsView = () => {
                 ¥{analytics.cost_per_liter.toFixed(1)}
               </p>
               <p style={{ color: '#6c757d' }}>
-                vs ¥90 retail
+                vs ¥{(retailPrice * 2).toFixed(0)} retail
               </p>
             </div>
           </div>
@@ -194,7 +209,7 @@ const AnalyticsView = () => {
                     borderStyle: 'dashed',
                     borderWidth: '1px 0'
                   }}></div>
-                  <span>Retail Cost (¥45/500mL)</span>
+                  <span>Retail Cost (¥{retailPrice}/500mL)</span>
                 </div>
               </div>
             </div>
@@ -214,14 +229,14 @@ const AnalyticsView = () => {
               <div style={{ textAlign: 'center', padding: '1rem', backgroundColor: '#f8f9fa', borderRadius: '0.25rem' }}>
                 <h4>Retail Cost</h4>
                 <p style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#dc3545' }}>
-                  ¥{((analytics.total_consumption_ml * 45) / 500).toFixed(0)}
+                  ¥{((analytics.total_consumption_ml * retailPrice) / 500).toFixed(0)}
                 </p>
               </div>
               
               <div style={{ textAlign: 'center', padding: '1rem', backgroundColor: '#e8f5e8', borderRadius: '0.25rem' }}>
                 <h4>Savings</h4>
                 <p style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#28a745' }}>
-                  ¥{(((analytics.total_consumption_ml * 45) / 500) - analytics.total_cost).toFixed(0)}
+                  ¥{(((analytics.total_consumption_ml * retailPrice) / 500) - analytics.total_cost).toFixed(0)}
                 </p>
               </div>
             </div>
