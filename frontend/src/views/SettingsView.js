@@ -24,13 +24,17 @@ const SettingsView = () => {
   const loadSettings = async () => {
     try {
       setLoading(true);
-      const [retailResponse, initialResponse] = await Promise.all([
+      const [retailResponse, initialResponse, pushes1LResponse, pushes05LResponse] = await Promise.all([
         settingsApi.getRetailPrice(),
         settingsApi.getInitialCost(),
+        settingsApi.getDefaultPushes1L(),
+        settingsApi.getDefaultPushes05L(),
       ]);
       
       setRetailPrice(retailResponse.data.value);
       setInitialCost(initialResponse.data.value);
+      setDefaultPushes1L(pushes1LResponse.data.value);
+      setDefaultPushes05L(pushes05LResponse.data.value);
       setError(null);
     } catch (err) {
       setError('Failed to load settings');
@@ -59,6 +63,28 @@ const SettingsView = () => {
     } catch (err) {
       setError('Failed to update initial cost');
       console.error('Update initial cost error:', err);
+    }
+  };
+
+  const handleSaveDefaultPushes1L = async () => {
+    try {
+      await settingsApi.updateDefaultPushes1L(defaultPushes1L);
+      setSuccess('Default pushes for 1L bottle updated successfully!');
+      setTimeout(() => setSuccess(null), 3000);
+    } catch (err) {
+      setError('Failed to update default pushes for 1L bottle');
+      console.error('Update default pushes 1L error:', err);
+    }
+  };
+
+  const handleSaveDefaultPushes05L = async () => {
+    try {
+      await settingsApi.updateDefaultPushes05L(defaultPushes05L);
+      setSuccess('Default pushes for 0.5L bottle updated successfully!');
+      setTimeout(() => setSuccess(null), 3000);
+    } catch (err) {
+      setError('Failed to update default pushes for 0.5L bottle');
+      console.error('Update default pushes 0.5L error:', err);
     }
   };
 
@@ -252,33 +278,47 @@ const SettingsView = () => {
           <p style={{ color: '#6c757d', marginBottom: '1rem' }}>
             Configure the default number of CO2 button pushes for each bottle size. These are automatically calculated when logging consumption.
           </p>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem' }}>
             <div className="form-group">
               <label className="form-label">1L Bottle (840mL):</label>
-              <input
-                type="number"
-                className="form-control"
-                value={defaultPushes1L}
-                onChange={(e) => setDefaultPushes1L(parseInt(e.target.value))}
-                min="1"
-                max="20"
-                disabled
-              />
-              <small style={{ color: '#6c757d' }}>Currently fixed at 4 pushes</small>
+              <div className="form-inline">
+                <input
+                  type="number"
+                  className="form-control"
+                  value={defaultPushes1L}
+                  onChange={(e) => setDefaultPushes1L(parseInt(e.target.value))}
+                  min="1"
+                  max="20"
+                />
+                <button
+                  className="btn btn-primary btn-sm"
+                  onClick={handleSaveDefaultPushes1L}
+                >
+                  Save
+                </button>
+              </div>
+              <small style={{ color: '#6c757d' }}>Number of CO2 pushes for 1L bottles</small>
             </div>
             
             <div className="form-group">
               <label className="form-label">0.5L Bottle (455mL):</label>
-              <input
-                type="number"
-                className="form-control"
-                value={defaultPushes05L}
-                onChange={(e) => setDefaultPushes05L(parseInt(e.target.value))}
-                min="1"
-                max="20"
-                disabled
-              />
-              <small style={{ color: '#6c757d' }}>Currently fixed at 2 pushes</small>
+              <div className="form-inline">
+                <input
+                  type="number"
+                  className="form-control"
+                  value={defaultPushes05L}
+                  onChange={(e) => setDefaultPushes05L(parseInt(e.target.value))}
+                  min="1"
+                  max="20"
+                />
+                <button
+                  className="btn btn-primary btn-sm"
+                  onClick={handleSaveDefaultPushes05L}
+                >
+                  Save
+                </button>
+              </div>
+              <small style={{ color: '#6c757d' }}>Number of CO2 pushes for 0.5L bottles</small>
             </div>
           </div>
         </div>
@@ -289,7 +329,7 @@ const SettingsView = () => {
         <h2 className="card-title">About</h2>
         <div style={{ color: '#6c757d' }}>
           <h4>SodaStream Consumption Tracker</h4>
-          <p>Version 1.2.0</p>
+          <p>Version 1.2.1</p>
           
           <h4 style={{ marginTop: '1rem' }}>Features:</h4>
           <ul>

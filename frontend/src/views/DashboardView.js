@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { analyticsApi, logsApi, cylindersApi } from '../services/api';
+import { analyticsApi, logsApi, cylindersApi, settingsApi } from '../services/api';
 import Counter from '../components/Counter';
 
 const DashboardView = () => {
@@ -17,16 +17,19 @@ const DashboardView = () => {
   const [co2Pushes, setCo2Pushes] = useState(null); // null means use default calculation
   const [cylinders, setCylinders] = useState([]);
   const [activeCylinderId, setActiveCylinderId] = useState(null);
+  const [defaultPushes1L, setDefaultPushes1L] = useState(4);
+  const [defaultPushes05L, setDefaultPushes05L] = useState(2);
 
   // Calculate default CO2 pushes based on bottle size and count
   const calculateDefaultCo2Pushes = (size, count) => {
-    const pushesPerBottle = size === '1L' ? 4 : 2;
+    const pushesPerBottle = size === '1L' ? defaultPushes1L : defaultPushes05L;
     return pushesPerBottle * count;
   };
 
   useEffect(() => {
     loadDashboardData();
     loadCylinders();
+    loadDefaultPushes();
   }, []);
 
   // Initialize CO2 pushes with default value
@@ -39,7 +42,21 @@ const DashboardView = () => {
   useEffect(() => {
     const defaultPushes = calculateDefaultCo2Pushes(bottleSize, bottleCount);
     setCo2Pushes(defaultPushes);
-  }, [bottleSize, bottleCount]);
+  }, [bottleSize, bottleCount, defaultPushes1L, defaultPushes05L, calculateDefaultCo2Pushes]);
+
+  const loadDefaultPushes = async () => {
+    try {
+      const [pushes1LResponse, pushes05LResponse] = await Promise.all([
+        settingsApi.getDefaultPushes1L(),
+        settingsApi.getDefaultPushes05L(),
+      ]);
+      
+      setDefaultPushes1L(pushes1LResponse.data.value);
+      setDefaultPushes05L(pushes05LResponse.data.value);
+    } catch (err) {
+      console.error('Load default pushes error:', err);
+    }
+  };
 
   const loadDashboardData = async () => {
     try {

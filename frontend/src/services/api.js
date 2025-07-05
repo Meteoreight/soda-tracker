@@ -58,6 +58,10 @@ export const settingsApi = {
   updateRetailPrice: (price) => api.put(`/settings/retail-price/current?price=${price}`),
   getInitialCost: () => api.get('/settings/initial-cost/current'),
   updateInitialCost: (cost) => api.put(`/settings/initial-cost/current?cost=${cost}`),
+  getDefaultPushes1L: () => api.get('/settings/default-pushes-1l/current'),
+  updateDefaultPushes1L: (pushes) => api.put(`/settings/default-pushes-1l/current?pushes=${pushes}`),
+  getDefaultPushes05L: () => api.get('/settings/default-pushes-05l/current'),
+  updateDefaultPushes05L: (pushes) => api.put(`/settings/default-pushes-05l/current?pushes=${pushes}`),
 };
 
 // Data Import/Export API

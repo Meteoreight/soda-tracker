@@ -97,3 +97,43 @@ def update_initial_cost(cost: float, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(setting)
     return {"value": cost}
+
+@router.get("/default-pushes-1l/current")
+def get_default_pushes_1l(db: Session = Depends(get_db)):
+    setting = db.query(models.Settings).filter(models.Settings.key == "default_pushes_1l").first()
+    return {"value": int(setting.value) if setting else 4}
+
+@router.put("/default-pushes-1l/current")
+def update_default_pushes_1l(pushes: int, db: Session = Depends(get_db)):
+    setting = db.query(models.Settings).filter(models.Settings.key == "default_pushes_1l").first()
+    if not setting:
+        setting = models.Settings(key="default_pushes_1l", value=str(pushes))
+        db.add(setting)
+    else:
+        setting.value = str(pushes)
+        from datetime import datetime
+        setting.updated_at = datetime.utcnow()
+    
+    db.commit()
+    db.refresh(setting)
+    return {"value": pushes}
+
+@router.get("/default-pushes-05l/current")
+def get_default_pushes_05l(db: Session = Depends(get_db)):
+    setting = db.query(models.Settings).filter(models.Settings.key == "default_pushes_05l").first()
+    return {"value": int(setting.value) if setting else 2}
+
+@router.put("/default-pushes-05l/current")
+def update_default_pushes_05l(pushes: int, db: Session = Depends(get_db)):
+    setting = db.query(models.Settings).filter(models.Settings.key == "default_pushes_05l").first()
+    if not setting:
+        setting = models.Settings(key="default_pushes_05l", value=str(pushes))
+        db.add(setting)
+    else:
+        setting.value = str(pushes)
+        from datetime import datetime
+        setting.updated_at = datetime.utcnow()
+    
+    db.commit()
+    db.refresh(setting)
+    return {"value": pushes}

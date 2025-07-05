@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { logsApi, cylindersApi } from '../services/api';
+import { logsApi, cylindersApi, settingsApi } from '../services/api';
 import Counter from '../components/Counter';
 
 const HistoryView = () => {
@@ -10,6 +10,8 @@ const HistoryView = () => {
   const [success, setSuccess] = useState(null);
   const [editingLog, setEditingLog] = useState(null);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [defaultPushes1L, setDefaultPushes1L] = useState(4);
+  const [defaultPushes05L, setDefaultPushes05L] = useState(2);
   
   // Form state
   const [formData, setFormData] = useState({
@@ -22,12 +24,13 @@ const HistoryView = () => {
 
   // Calculate default CO2 pushes based on bottle size and count
   const calculateDefaultCo2Pushes = (size, count) => {
-    const pushesPerBottle = size === '1L' ? 4 : 2;
+    const pushesPerBottle = size === '1L' ? defaultPushes1L : defaultPushes05L;
     return pushesPerBottle * count;
   };
 
   useEffect(() => {
     loadData();
+    loadDefaultPushes();
   }, []);
 
   // Update CO2 pushes when bottle size or count changes (only for new logs, not editing)
@@ -36,7 +39,21 @@ const HistoryView = () => {
       const defaultPushes = calculateDefaultCo2Pushes(formData.bottle_size, formData.bottle_count);
       setFormData(prev => ({ ...prev, co2_pushes: defaultPushes }));
     }
-  }, [formData.bottle_size, formData.bottle_count, showAddForm, editingLog]);
+  }, [formData.bottle_size, formData.bottle_count, showAddForm, editingLog, defaultPushes1L, defaultPushes05L, calculateDefaultCo2Pushes]);
+
+  const loadDefaultPushes = async () => {
+    try {
+      const [pushes1LResponse, pushes05LResponse] = await Promise.all([
+        settingsApi.getDefaultPushes1L(),
+        settingsApi.getDefaultPushes05L(),
+      ]);
+      
+      setDefaultPushes1L(pushes1LResponse.data.value);
+      setDefaultPushes05L(pushes05LResponse.data.value);
+    } catch (err) {
+      console.error('Load default pushes error:', err);
+    }
+  };
 
   const loadData = async () => {
     try {
