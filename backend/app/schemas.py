@@ -5,12 +5,14 @@ from typing import Optional, List
 class CylinderBase(BaseModel):
     number: int
     cost: float = 0.0
+    max_pushes: int = 150
 
 class CylinderCreate(CylinderBase):
     pass
 
 class CylinderUpdate(BaseModel):
     cost: Optional[float] = None
+    max_pushes: Optional[int] = None
     is_active: Optional[bool] = None
 
 class Cylinder(CylinderBase):

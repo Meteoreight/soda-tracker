@@ -14,6 +14,7 @@ const CylindersView = () => {
   const [formData, setFormData] = useState({
     number: '',
     cost: 0,
+    max_pushes: 150,
   });
 
   useEffect(() => {
@@ -61,13 +62,17 @@ const CylindersView = () => {
     
     try {
       if (editingCylinder) {
-        await cylindersApi.update(editingCylinder.id, { cost: parseFloat(formData.cost) });
+        await cylindersApi.update(editingCylinder.id, { 
+          cost: parseFloat(formData.cost),
+          max_pushes: parseInt(formData.max_pushes) 
+        });
         setSuccess('Cylinder updated successfully!');
         setEditingCylinder(null);
       } else {
         await cylindersApi.create({
           number: parseInt(formData.number),
           cost: parseFloat(formData.cost),
+          max_pushes: parseInt(formData.max_pushes),
         });
         setSuccess('Cylinder created successfully!');
         setShowAddForm(false);
@@ -87,6 +92,7 @@ const CylindersView = () => {
     setFormData({
       number: cylinder.number.toString(),
       cost: cylinder.cost,
+      max_pushes: cylinder.max_pushes || 150,
     });
   };
 
@@ -122,6 +128,7 @@ const CylindersView = () => {
     setFormData({
       number: '',
       cost: 0,
+      max_pushes: 150,
     });
   };
 
@@ -203,6 +210,18 @@ const CylindersView = () => {
               </div>
               
               <div className="form-group">
+                <label className="form-label">Max Pushes:</label>
+                <input
+                  type="number"
+                  className="form-control"
+                  value={formData.max_pushes}
+                  onChange={(e) => setFormData({ ...formData, max_pushes: e.target.value })}
+                  min="1"
+                  required
+                />
+              </div>
+              
+              <div className="form-group">
                 <button type="submit" className="btn btn-success">
                   {editingCylinder ? 'Update' : 'Add'} Cylinder
                 </button>
@@ -231,6 +250,7 @@ const CylindersView = () => {
               <tr>
                 <th>Number</th>
                 <th>Cost (¥)</th>
+                <th>Max Pushes</th>
                 <th>Status</th>
                 <th>Usage Period</th>
                 <th>Total Pushes</th>
@@ -244,6 +264,9 @@ const CylindersView = () => {
                     <strong>#{cylinder.number}</strong>
                   </td>
                   <td>¥{cylinder.cost.toFixed(2)}</td>
+                  <td style={{ fontWeight: 'bold' }}>
+                    {cylinder.max_pushes || 150}
+                  </td>
                   <td>
                     {cylinder.is_active ? (
                       <span style={{ 
@@ -279,7 +302,7 @@ const CylindersView = () => {
                         className="btn btn-secondary btn-sm"
                         onClick={() => handleEdit(cylinder)}
                       >
-                        Edit Cost
+                        Edit Details
                       </button>
                       
                       {!cylinder.is_active && (
@@ -314,7 +337,7 @@ const CylindersView = () => {
           <ul>
             <li><strong>Add New Cylinder:</strong> Create a new cylinder with a unique number and cost.</li>
             <li><strong>Make Active:</strong> Set a cylinder as active for new consumption logs.</li>
-            <li><strong>Edit Cost:</strong> Update the cost of a cylinder (useful when you know the actual purchase price).</li>
+            <li><strong>Edit Details:</strong> Update the cost and maximum push count of a cylinder (useful when you know the actual purchase price and expected capacity).</li>
             <li><strong>Usage Period:</strong> Shows the date range when this cylinder was used for logging consumption.</li>
           </ul>
           
@@ -324,6 +347,7 @@ const CylindersView = () => {
             <li>New consumption logs will automatically use the active cylinder.</li>
             <li>You can change the active cylinder when you replace your CO2 cylinder.</li>
             <li>Cylinders with associated logs cannot be deleted.</li>
+            <li><strong>Max Pushes:</strong> The maximum number of CO2 button pushes available per cylinder (default: 150). This is used to calculate the cost per push.</li>
           </ul>
         </div>
       </div>

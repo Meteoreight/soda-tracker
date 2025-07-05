@@ -11,6 +11,7 @@ class Cylinder(Base):
     id = Column(Integer, primary_key=True, index=True)
     number = Column(Integer, unique=True, index=True)
     cost = Column(Float, default=0.0)
+    max_pushes = Column(Integer, default=150)  # Maximum number of pushes per cylinder
     is_active = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.utcnow)
     

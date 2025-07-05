@@ -289,7 +289,7 @@ const SettingsView = () => {
         <h2 className="card-title">About</h2>
         <div style={{ color: '#6c757d' }}>
           <h4>SodaStream Consumption Tracker</h4>
-          <p>Version 1.1.0</p>
+          <p>Version 1.2.0</p>
           
           <h4 style={{ marginTop: '1rem' }}>Features:</h4>
           <ul>
