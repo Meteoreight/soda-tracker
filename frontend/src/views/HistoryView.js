@@ -95,7 +95,11 @@ const HistoryView = () => {
       loadData();
       setTimeout(() => setSuccess(null), 3000);
     } catch (err) {
-      setError('Failed to delete log');
+      if (err.response && err.response.data && err.response.data.detail) {
+        setError(`Failed to delete log: ${err.response.data.detail}`);
+      } else {
+        setError('Failed to delete log');
+      }
       console.error('Delete error:', err);
     }
   };
@@ -118,7 +122,11 @@ const HistoryView = () => {
       resetForm();
       setTimeout(() => setSuccess(null), 3000);
     } catch (err) {
-      setError('Failed to save log');
+      if (err.response && err.response.data && err.response.data.detail) {
+        setError(`Failed to save log: ${err.response.data.detail}`);
+      } else {
+        setError('Failed to save log');
+      }
       console.error('Save error:', err);
     }
   };

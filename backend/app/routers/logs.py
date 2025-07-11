@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app import models, schemas
 from typing import List
-from datetime import datetime
+from datetime import datetime, date
 
 router = APIRouter()
 
@@ -69,6 +69,19 @@ def update_consumption_log(log_id: int, log_update: schemas.ConsumptionLogUpdate
         raise HTTPException(status_code=404, detail="Log not found")
     
     update_data = log_update.dict(exclude_unset=True)
+    
+    # Handle date conversion if provided as string
+    if "date" in update_data and isinstance(update_data["date"], str):
+        try:
+            update_data["date"] = datetime.strptime(update_data["date"], "%Y-%m-%d").date()
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD")
+    
+    # Verify cylinder exists if cylinder_id is being updated
+    if "cylinder_id" in update_data:
+        cylinder = db.query(models.Cylinder).filter(models.Cylinder.id == update_data["cylinder_id"]).first()
+        if not cylinder:
+            raise HTTPException(status_code=404, detail="Cylinder not found")
     
     # Recalculate volume if bottle data changed
     if "bottle_size" in update_data or "bottle_count" in update_data:

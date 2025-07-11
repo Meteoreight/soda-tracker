@@ -1,6 +1,6 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from datetime import date, datetime
-from typing import Optional, List
+from typing import Optional, List, Union
 
 class CylinderBase(BaseModel):
     number: int
@@ -33,7 +33,7 @@ class ConsumptionLogCreate(ConsumptionLogBase):
     co2_pushes: Optional[int] = None
 
 class ConsumptionLogUpdate(BaseModel):
-    date: Optional[date] = None
+    date: Optional[Union[date, str]] = None
     bottle_size: Optional[str] = None
     bottle_count: Optional[int] = None
     cylinder_id: Optional[int] = None
