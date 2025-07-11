@@ -106,28 +106,37 @@ const HistoryView = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    e.stopPropagation();
     
     try {
+      console.log('Submitting form data:', formData); // Debug log for iOS Safari
+      
       if (editingLog) {
         await logsApi.update(editingLog, formData);
-        setSuccess('Log updated successfully!');
-        setEditingLog(null);
+        requestAnimationFrame(() => {
+          setSuccess('Log updated successfully!');
+          setEditingLog(null);
+        });
       } else {
         await logsApi.create(formData);
-        setSuccess('Log created successfully!');
-        setShowAddForm(false);
+        requestAnimationFrame(() => {
+          setSuccess('Log created successfully!');
+          setShowAddForm(false);
+        });
       }
       
       loadData();
       resetForm();
       setTimeout(() => setSuccess(null), 3000);
     } catch (err) {
-      if (err.response && err.response.data && err.response.data.detail) {
-        setError(`Failed to save log: ${err.response.data.detail}`);
-      } else {
-        setError('Failed to save log');
-      }
-      console.error('Save error:', err);
+      console.error('Save error details:', err.response || err); // Enhanced error logging
+      const errorMessage = err.response && err.response.data && err.response.data.detail 
+        ? `Failed to save log: ${err.response.data.detail}`
+        : 'Failed to save log';
+      
+      requestAnimationFrame(() => {
+        setError(errorMessage);
+      });
     }
   };
 
@@ -184,6 +193,8 @@ const HistoryView = () => {
                   className="form-control"
                   value={formData.date}
                   onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                  onBlur={(e) => setFormData({ ...formData, date: e.target.value })}
+                  onKeyUp={(e) => setFormData({ ...formData, date: e.target.value })}
                   required
                 />
               </div>
@@ -194,6 +205,7 @@ const HistoryView = () => {
                   className="form-control"
                   value={formData.bottle_size}
                   onChange={(e) => setFormData({ ...formData, bottle_size: e.target.value })}
+                  onBlur={(e) => setFormData({ ...formData, bottle_size: e.target.value })}
                 >
                   <option value="1L">1L (840mL)</option>
                   <option value="0.5L">0.5L (455mL)</option>
@@ -216,6 +228,7 @@ const HistoryView = () => {
                   className="form-control"
                   value={formData.cylinder_id}
                   onChange={(e) => setFormData({ ...formData, cylinder_id: parseInt(e.target.value) })}
+                  onBlur={(e) => setFormData({ ...formData, cylinder_id: parseInt(e.target.value) })}
                   required
                 >
                   <option value="">Select Cylinder</option>

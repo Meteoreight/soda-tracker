@@ -87,6 +87,7 @@ const DashboardView = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    e.stopPropagation();
     
     if (!activeCylinderId) {
       setError('Please select an active cylinder in the Cylinders section first');
@@ -102,24 +103,31 @@ const DashboardView = () => {
         co2_pushes: co2Pushes,
       };
 
+      console.log('Submitting log data:', logData); // Debug log for iOS Safari
       await logsApi.create(logData);
-      setSuccess('Consumption logged successfully!');
-      setError(null);
       
-      // Reset form
-      setBottleCount(1);
-      setDate(new Date().toISOString().split('T')[0]);
-      const defaultPushes = calculateDefaultCo2Pushes(bottleSize, 1);
-      setCo2Pushes(defaultPushes);
-      
-      // Reload dashboard data
-      loadDashboardData();
+      // Use requestAnimationFrame for Safari compatibility
+      requestAnimationFrame(() => {
+        setSuccess('Consumption logged successfully!');
+        setError(null);
+        
+        // Reset form
+        setBottleCount(1);
+        setDate(new Date().toISOString().split('T')[0]);
+        const defaultPushes = calculateDefaultCo2Pushes(bottleSize, 1);
+        setCo2Pushes(defaultPushes);
+        
+        // Reload dashboard data
+        loadDashboardData();
+      });
       
       // Clear success message after 3 seconds
       setTimeout(() => setSuccess(null), 3000);
     } catch (err) {
-      setError('Failed to log consumption');
-      console.error('Log creation error:', err);
+      console.error('Log creation error details:', err.response || err); // Enhanced error logging
+      requestAnimationFrame(() => {
+        setError('Failed to log consumption');
+      });
     }
   };
 
@@ -146,6 +154,8 @@ const DashboardView = () => {
                 className="form-control"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
+                onBlur={(e) => setDate(e.target.value)}
+                onKeyUp={(e) => setDate(e.target.value)}
                 required
               />
             </div>
@@ -156,6 +166,7 @@ const DashboardView = () => {
                 className="form-control"
                 value={bottleSize}
                 onChange={(e) => setBottleSize(e.target.value)}
+                onBlur={(e) => setBottleSize(e.target.value)}
               >
                 <option value="1L">1L (840mL)</option>
                 <option value="0.5L">0.5L (455mL)</option>
