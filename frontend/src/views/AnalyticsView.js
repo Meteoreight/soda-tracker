@@ -167,6 +167,7 @@ const AnalyticsView = () => {
                       stroke="#007bff" 
                       strokeWidth={2}
                       name="total_cost"
+                      dot={false}
                     />
                     <Line 
                       yAxisId="cost"
@@ -174,8 +175,8 @@ const AnalyticsView = () => {
                       dataKey="retail_cost" 
                       stroke="#dc3545" 
                       strokeWidth={2}
-                      strokeDasharray="5 5"
                       name="retail_cost"
+                      dot={false}
                     />
                   </LineChart>
                 </ResponsiveContainer>
