@@ -15,6 +15,7 @@ const DashboardView = () => {
   const [bottleSize, setBottleSize] = useState('1L');
   const [bottleCount, setBottleCount] = useState(1);
   const [co2Pushes, setCo2Pushes] = useState(null); // null means use default calculation
+  const [isCo2Edited, setIsCo2Edited] = useState(false); // track manual override
   const [cylinders, setCylinders] = useState([]);
   const [activeCylinderId, setActiveCylinderId] = useState(null);
   const [defaultPushes1L, setDefaultPushes1L] = useState(4);
@@ -41,8 +42,10 @@ const DashboardView = () => {
   // Update default CO2 pushes when bottle size or count changes
   useEffect(() => {
     const defaultPushes = calculateDefaultCo2Pushes(bottleSize, bottleCount);
-    setCo2Pushes(defaultPushes);
-  }, [bottleSize, bottleCount, defaultPushes1L, defaultPushes05L, calculateDefaultCo2Pushes]);
+    if (!isCo2Edited) {
+      setCo2Pushes(defaultPushes);
+    }
+  }, [bottleSize, bottleCount, defaultPushes1L, defaultPushes05L, isCo2Edited]);
 
   const loadDefaultPushes = async () => {
     try {
@@ -110,6 +113,7 @@ const DashboardView = () => {
       setBottleCount(1);
       setDate(new Date().toISOString().split('T')[0]);
       const defaultPushes = calculateDefaultCo2Pushes(bottleSize, 1);
+      setIsCo2Edited(false);
       setCo2Pushes(defaultPushes);
       
       // Reload dashboard data
@@ -176,7 +180,7 @@ const DashboardView = () => {
               <label className="form-label">CO2 Pushes:</label>
               <Counter
                 value={co2Pushes || 0}
-                onChange={setCo2Pushes}
+                onChange={(val) => { setIsCo2Edited(true); setCo2Pushes(val); }}
                 min={0}
                 max={50}
               />
