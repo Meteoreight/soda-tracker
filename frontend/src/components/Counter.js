@@ -1,17 +1,13 @@
 import React from 'react';
 
 const Counter = ({ value, onChange, min = 0, max = 99 }) => {
-  const handleIncrement = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const handleIncrement = () => {
     if (value < max) {
       onChange(value + 1);
     }
   };
 
-  const handleDecrement = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const handleDecrement = () => {
     if (value > min) {
       onChange(value - 1);
     }
@@ -23,9 +19,7 @@ const Counter = ({ value, onChange, min = 0, max = 99 }) => {
         type="button"
         className="btn btn-secondary btn-sm"
         onClick={handleDecrement}
-        onTouchEnd={handleDecrement}
         disabled={value <= min}
-        style={{ touchAction: 'manipulation' }}
       >
         -1
       </button>
@@ -34,9 +28,7 @@ const Counter = ({ value, onChange, min = 0, max = 99 }) => {
         type="button"
         className="btn btn-secondary btn-sm"
         onClick={handleIncrement}
-        onTouchEnd={handleIncrement}
         disabled={value >= max}
-        style={{ touchAction: 'manipulation' }}
       >
         +1
       </button>

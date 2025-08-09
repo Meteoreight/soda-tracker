@@ -15,6 +15,7 @@ const DashboardView = () => {
   const [bottleSize, setBottleSize] = useState('1L');
   const [bottleCount, setBottleCount] = useState(1);
   const [co2Pushes, setCo2Pushes] = useState(null); // null means use default calculation
+  const [isCo2Edited, setIsCo2Edited] = useState(false); // track manual override
   const [cylinders, setCylinders] = useState([]);
   const [activeCylinderId, setActiveCylinderId] = useState(null);
   const [defaultPushes1L, setDefaultPushes1L] = useState(4);
@@ -32,17 +33,14 @@ const DashboardView = () => {
     loadDefaultPushes();
   }, []);
 
-  // Initialize CO2 pushes with default value
-  useEffect(() => {
-    const defaultPushes = calculateDefaultCo2Pushes(bottleSize, bottleCount);
-    setCo2Pushes(defaultPushes);
-  }, []); // Run only once on mount
-
   // Update default CO2 pushes when bottle size or count changes
   useEffect(() => {
+    // Only apply defaults if user hasn't manually overridden
     const defaultPushes = calculateDefaultCo2Pushes(bottleSize, bottleCount);
-    setCo2Pushes(defaultPushes);
-  }, [bottleSize, bottleCount, defaultPushes1L, defaultPushes05L, calculateDefaultCo2Pushes]);
+    if (!isCo2Edited) {
+      setCo2Pushes(defaultPushes);
+    }
+  }, [bottleSize, bottleCount, defaultPushes1L, defaultPushes05L, isCo2Edited]);
 
   const loadDefaultPushes = async () => {
     try {
@@ -87,7 +85,6 @@ const DashboardView = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    e.stopPropagation();
     
     if (!activeCylinderId) {
       setError('Please select an active cylinder in the Cylinders section first');
@@ -103,31 +100,25 @@ const DashboardView = () => {
         co2_pushes: co2Pushes,
       };
 
-      console.log('Submitting log data:', logData); // Debug log for iOS Safari
       await logsApi.create(logData);
+      setSuccess('Consumption logged successfully!');
+      setError(null);
       
-      // Use requestAnimationFrame for Safari compatibility
-      requestAnimationFrame(() => {
-        setSuccess('Consumption logged successfully!');
-        setError(null);
-        
-        // Reset form
-        setBottleCount(1);
-        setDate(new Date().toISOString().split('T')[0]);
-        const defaultPushes = calculateDefaultCo2Pushes(bottleSize, 1);
-        setCo2Pushes(defaultPushes);
-        
-        // Reload dashboard data
-        loadDashboardData();
-      });
+      // Reset form
+      setBottleCount(1);
+      setDate(new Date().toISOString().split('T')[0]);
+      const defaultPushes = calculateDefaultCo2Pushes(bottleSize, 1);
+      setIsCo2Edited(false);
+      setCo2Pushes(defaultPushes);
+      
+      // Reload dashboard data
+      loadDashboardData();
       
       // Clear success message after 3 seconds
       setTimeout(() => setSuccess(null), 3000);
     } catch (err) {
-      console.error('Log creation error details:', err.response || err); // Enhanced error logging
-      requestAnimationFrame(() => {
-        setError('Failed to log consumption');
-      });
+      setError('Failed to log consumption');
+      console.error('Log creation error:', err);
     }
   };
 
@@ -154,8 +145,6 @@ const DashboardView = () => {
                 className="form-control"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
-                onBlur={(e) => setDate(e.target.value)}
-                onKeyUp={(e) => setDate(e.target.value)}
                 required
               />
             </div>
@@ -166,7 +155,6 @@ const DashboardView = () => {
                 className="form-control"
                 value={bottleSize}
                 onChange={(e) => setBottleSize(e.target.value)}
-                onBlur={(e) => setBottleSize(e.target.value)}
               >
                 <option value="1L">1L (840mL)</option>
                 <option value="0.5L">0.5L (455mL)</option>
@@ -187,7 +175,7 @@ const DashboardView = () => {
               <label className="form-label">CO2 Pushes:</label>
               <Counter
                 value={co2Pushes || 0}
-                onChange={setCo2Pushes}
+                onChange={(val) => { setIsCo2Edited(true); setCo2Pushes(val); }}
                 min={0}
                 max={50}
               />
