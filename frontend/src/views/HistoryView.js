@@ -12,6 +12,8 @@ const HistoryView = () => {
   const [showAddForm, setShowAddForm] = useState(false);
   const [defaultPushes1L, setDefaultPushes1L] = useState(4);
   const [defaultPushes05L, setDefaultPushes05L] = useState(2);
+
+  const LOG_FETCH_LIMIT = 1000;
   
   // Form state
   const [formData, setFormData] = useState({
@@ -59,10 +61,10 @@ const HistoryView = () => {
     try {
       setLoading(true);
       const [logsResponse, cylindersResponse] = await Promise.all([
-        logsApi.getAll(),
+        logsApi.getAll(0, LOG_FETCH_LIMIT),
         cylindersApi.getAll(),
       ]);
-      setLogs(logsResponse.data.sort((a, b) => new Date(b.date) - new Date(a.date)));
+      setLogs(logsResponse.data);
       setCylinders(cylindersResponse.data);
       setError(null);
     } catch (err) {

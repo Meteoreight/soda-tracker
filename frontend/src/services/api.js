@@ -22,7 +22,8 @@ const api = axios.create({
 
 // Consumption Logs API
 export const logsApi = {
-  getAll: (skip = 0, limit = 100) => api.get(`/logs?skip=${skip}&limit=${limit}`),
+  getAll: (skip = 0, limit = 1000) =>
+    api.get(`/logs?skip=${skip}&limit=${limit}`),
   getById: (id) => api.get(`/logs/${id}`),
   create: (data) => api.post('/logs', data),
   update: (id, data) => api.put(`/logs/${id}`, data),

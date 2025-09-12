@@ -24,8 +24,16 @@ def calculate_volume_and_pushes(bottle_size: str, bottle_count: int):
     return total_volume, total_pushes
 
 @router.get("/", response_model=List[schemas.ConsumptionLog])
-def get_consumption_logs(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    logs = db.query(models.ConsumptionLog).offset(skip).limit(limit).all()
+def get_consumption_logs(
+    skip: int = 0, limit: int = 1000, db: Session = Depends(get_db)
+):
+    logs = (
+        db.query(models.ConsumptionLog)
+        .order_by(models.ConsumptionLog.date.desc())
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
     return logs
 
 @router.post("/", response_model=schemas.ConsumptionLog)
